@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 const { isEmail } = require("validator");
+const bcrypt = require("bcrypt");
 
-const User = mongoose.model("User", {
+// to use a middleware before user.save(). we will have to define the schema seperately before calling mongoose.model;
+
+const UserSchema = new mongoose.Schema({
   name: {
     type: String,
     default: "Anonymous",
@@ -36,5 +39,20 @@ const User = mongoose.model("User", {
     },
   },
 });
+
+UserSchema.pre("save", async function (next) {
+  // the function will get access to complete current user object as 'this'
+  // this function gets called everytime before user.save() is called.
+  console.log("hashing user password");
+  const user = this;
+  if (user.isModified("password")) {
+    user.password = await bcrypt.hash(user.password, 8);
+  }
+
+  // next tells that our execution is done, user can now be saved (so that async functions can pe performed, and when they get finished we call next)
+  next();
+});
+
+const User = mongoose.model("User", UserSchema);
 
 module.exports = User;

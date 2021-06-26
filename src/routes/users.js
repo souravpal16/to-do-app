@@ -54,15 +54,16 @@ userRouter.patch("/users/:id", async (req, res) => {
 
   try {
     const _id = req.params.id;
-    // options object: sets updatedUser to the updated user from database, and runs validator before updating
-    const updatedUser = await User.findByIdAndUpdate(_id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!updatedUser) {
+
+    // complex methods like findbyidanupdate, bypass mongoose, and hence middlewares like bcrypt, so we have to manually update
+    const user = await User.findById(_id);
+    if (!user) {
       return res.status(400).send(`Error: user with id ${_id} not found`);
     }
-    res.send(updatedUser);
+
+    requestedProps.forEach((prop) => (user[prop] = req.body[prop]));
+    await user.save();
+    res.send(user);
   } catch (err) {
     res.status(500).send(err);
   }

@@ -55,6 +55,7 @@ taskRouter.patch("/tasks/:id", async (req, res) => {
 
   try {
     const _id = req.params.id;
+    // options object: sets updatedUser to the updated user from database, and runs validator before updating
     const updatedTask = await Task.findByIdAndUpdate(_id, req.body, {
       new: true,
       runValidators: true,
