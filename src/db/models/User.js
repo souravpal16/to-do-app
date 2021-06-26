@@ -40,6 +40,21 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
+// custom function on User model to find user by credentials
+UserSchema.statics.findByCredentials = async (email, password) => {
+  const user = await User.findOne({ email: email });
+  if (!user) {
+    throw new Error("Invalid credentials. Could not log in");
+  }
+
+  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+  if (!isPasswordCorrect) {
+    throw new Error("Invalid credentials. Could not log in");
+  }
+  return user;
+};
+
+// hash password before saving
 UserSchema.pre("save", async function (next) {
   // the function will get access to complete current user object as 'this'
   // this function gets called everytime before user.save() is called.

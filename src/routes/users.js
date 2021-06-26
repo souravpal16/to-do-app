@@ -82,4 +82,19 @@ userRouter.delete("/users/:id", async (req, res) => {
   }
 });
 
+// post request, data is sent from the client in request body, while in get request
+// data is sent in the URL, so it is less secure.
+// also, if private data like password is sent in the request through url, you can just copy paste the
+// link to get access to the user profile without logging in
+userRouter.post("/users/login", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    // using custom method
+    const user = await User.findByCredentials(email, password);
+    res.send(user);
+  } catch (err) {
+    res.status(400).send();
+  }
+});
+
 module.exports = userRouter;
