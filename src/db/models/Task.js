@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+// owner will contain an object id, which will be a reference to an instance of User model.
+
 const Task = mongoose.model("Task", {
   description: {
     type: String,
@@ -9,6 +11,11 @@ const Task = mongoose.model("Task", {
   completed: {
     type: Boolean,
     default: false,
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
 });
 
