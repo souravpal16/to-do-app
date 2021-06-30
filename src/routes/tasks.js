@@ -1,3 +1,4 @@
+const { request } = require("express");
 const express = require("express");
 const Task = require("../db/models/Task");
 const { findOne } = require("../db/models/User");
@@ -18,17 +19,50 @@ taskRouter.post("/tasks", auth, async (req, res) => {
   }
 });
 
+// GET /tasks?completed=true ,  returns all tasks which are completed
+// GET /tasks?limit=num , limits number of tasks returned to num
+// GET /tasks?page=num , sends data of the nth page,based on the limit set
+// GET /tasks?sortBy=createdAt:asc , sorts by createdAt prop in ascending order
+// GET /tasks?sortBy=completed
 taskRouter.get("/tasks", auth, async (req, res) => {
+  const { completed, limit, page, sortBy } = req.query;
+
   // return all tasks which have their owner prop== authenticated user
   // we can use populate method or manually find by filtering owner;
   try {
     // populate the tasks property (which is virtual in our case) of req.user, and execute it
-    await req.user.populate("tasks").execPopulate();
-    const tasks = req.user.tasks;
+    // await req.user.populate("tasks").execPopulate();
+    // but we also want to apply some filters to the search, so we need to pass an object instead of just a string
+    const match = {};
+    const sort = {};
+    if (sortBy) {
+      const [propToSort, order] = sortBy.split(":");
+      sort[propToSort] = order === "des" ? -1 : 1;
+    }
 
-    res.send(tasks);
+    if (completed) {
+      // this works because query is a string, so even if the query is "false", it wont be a falsy value
+      // we convert the string to bool and store in match
+      match.completed = completed === "true";
+    }
+    // first arg is the field that is to be populated, second arg is an object containing fields that much match
+    // if no query, match.completed will be undefined and no filteration will be applied
+    await req.user
+      .populate({
+        path: "tasks",
+        match,
+        options: {
+          limit: parseInt(limit),
+          skip: limit ? parseInt(page - 1) * parseInt(limit) : page,
+          // -1 pages start from 1, and at , say page 1, we skip 0 itmes
+          // if no limit set, you cant set pages, so just skip (page) number of items. (fallback)
+          sort,
+        },
+      })
+      .execPopulate();
+    res.send(req.user.tasks);
   } catch (err) {
-    res.status(500).send("failed");
+    res.status(500).send(err);
   }
 });
 

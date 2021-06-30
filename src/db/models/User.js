@@ -5,52 +5,59 @@ const jwt = require("jsonwebtoken");
 const Task = require("./Task");
 
 // to use a middleware before user.save(). we will have to define the schema seperately before calling mongoose.model;
+// second arg is optional, we used it to set timestamps to user object when it gets created and updated
 
-const UserSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    default: "Anonymous",
-    trim: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-    validate(email) {
-      if (!isEmail(email)) {
-        throw new Error("Invalid Email address.");
-      }
+const UserSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      default: "Anonymous",
+      trim: true,
     },
-  },
-  password: {
-    type: String,
-    required: true,
-    trim: true,
-    validate(password) {
-      if (password.trim().length <= 6) throw new Error("Password is too short");
-      if (password.toLowerCase().includes("password".toLowerCase()))
-        throw new Error('Password can not include the word "password" in it');
-    },
-  },
-  age: {
-    type: Number,
-    default: 0,
-    validate(age) {
-      if (age < 0) {
-        throw new Error("Age should be greater than 0.");
-      }
-    },
-  },
-  // tokens will be an array of objects, with each obj having token property as a string
-  tokens: [
-    {
-      token: {
-        type: String,
-        required: true,
+    email: {
+      type: String,
+      unique: true,
+      required: true,
+      validate(email) {
+        if (!isEmail(email)) {
+          throw new Error("Invalid Email address.");
+        }
       },
     },
-  ],
-});
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+      validate(password) {
+        if (password.trim().length <= 6)
+          throw new Error("Password is too short");
+        if (password.toLowerCase().includes("password".toLowerCase()))
+          throw new Error('Password can not include the word "password" in it');
+      },
+    },
+    age: {
+      type: Number,
+      default: 0,
+      validate(age) {
+        if (age < 0) {
+          throw new Error("Age should be greater than 0.");
+        }
+      },
+    },
+    // tokens will be an array of objects, with each obj having token property as a string
+    tokens: [
+      {
+        token: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
 
 // filter out the tokens array and password from user object before sending it as a response
 UserSchema.methods.toJSON = function () {
