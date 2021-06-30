@@ -1,7 +1,5 @@
-const { request } = require("express");
 const express = require("express");
 const Task = require("../db/models/Task");
-const { findOne } = require("../db/models/User");
 
 const auth = require("../middlewares/auth");
 
