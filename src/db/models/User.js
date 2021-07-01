@@ -73,7 +73,7 @@ UserSchema.methods.toJSON = function () {
   const userObj = user.toObject();
   delete userObj.tokens;
   delete userObj.password;
-  // delete userObj.avatar;
+  delete userObj.avatar;
   return userObj;
 };
 
@@ -85,9 +85,13 @@ UserSchema.methods.getAuthToken = async function () {
   // arg1: an opject of properties that is distinct for each user, in our case, _id works
   // arg2: a secret signature, which behind the scene verifies that someone did not temper the token, this can be any string that only the developer will know
   // arg3: optional. sets some options. like in how many days will the token expire automatically
-  const token = jwt.sign({ _id: user._id.toString() }, "taskToken5379", {
-    expiresIn: "7 days",
-  });
+  const token = jwt.sign(
+    { _id: user._id.toString() },
+    process.env.JWT_SECRET_KEY,
+    {
+      expiresIn: "14 days",
+    }
+  );
   return token;
 };
 

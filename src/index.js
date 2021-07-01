@@ -4,7 +4,7 @@ require("./mongoose");
 const taskRouter = require("./routes/tasks");
 const userRouter = require("./routes/users");
 const app = express();
-const port = process.env.PORT || "3000";
+const port = process.env.PORT;
 
 // set up middleware, a function that runs when a request is sent, and before the userRouter/TaskROuter start running
 // request=>middleware function=>(if and when next() is called in middleware) routers run

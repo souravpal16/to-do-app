@@ -2,6 +2,8 @@ const express = require("express");
 const User = require("../db/models/User");
 const auth = require("../middlewares/auth");
 const multer = require("multer");
+const sharp = require("sharp");
+const { sendWelcomeMail, sendGoodByeEMail } = require("../emails/account");
 const userRouter = new express.Router();
 
 // create an instance of multer, lke we create app as an instance of express
@@ -31,6 +33,7 @@ const uploads = multer({
 // we'll add auth as a second optional argument in each route which should only run when token is verified
 
 // users
+// signup
 userRouter.post("/users", async (req, res) => {
   const user = new User(req.body);
 
@@ -38,6 +41,8 @@ userRouter.post("/users", async (req, res) => {
     const token = await user.getAuthToken();
     user.tokens = user.tokens.concat({ token });
     await user.save();
+    // this is an async fnc but we dont need to wait for it for our code to run..
+    sendWelcomeMail(user.email, user.name);
     res.status(201).send({ user, token });
   } catch (err) {
     res.status(400).send(err);
@@ -98,7 +103,12 @@ userRouter.post(
   async (req, res) => {
     // file from multer can be accessed with req.file.
     if (req.file.buffer) {
-      req.user.avatar = req.file.buffer;
+      // sharp is used to edit our image before saving it to user
+      const buffer = await sharp(req.file.buffer)
+        .png()
+        .resize(250, 250)
+        .toBuffer();
+      req.user.avatar = buffer;
       await req.user.save();
     }
     res.send();
@@ -121,7 +131,7 @@ userRouter.get("/users/me", auth, async (req, res) => {
 userRouter.get("/users/me/avatar", auth, async (req, res) => {
   try {
     if (!req.user.avatar) throw new Error();
-    res.set("Content-Type", "image/jpg");
+    res.set("Content-Type", "image/png");
     res.send(req.user.avatar);
   } catch (err) {
     res.status(404).send();
@@ -135,7 +145,7 @@ userRouter.get("/users/:id/avatar", async (req, res) => {
 
     if (!user?.avatar) throw new Error();
 
-    res.set("Content-Type", "image/jpg");
+    res.set("Content-Type", "image/png");
     res.send(user.avatar);
   } catch (err) {}
 });
@@ -173,7 +183,11 @@ userRouter.patch(
   uploads.single("avatar"),
   async (req, res) => {
     try {
-      req.user.avatar = req.file.buffer;
+      const buffer = await sharp(req.file.buffer)
+        .png()
+        .resize(250, 250)
+        .toBuffer();
+      req.user.avatar = buffer;
       await req.user.save();
       res.send();
     } catch (err) {
@@ -199,6 +213,7 @@ userRouter.delete("/users/me/avatar", auth, async (req, res) => {
 userRouter.delete("/users/me", auth, async (req, res) => {
   try {
     await req.user.remove();
+    sendGoodByeEMail(req.user.email, req.user.name);
     res.send(req.user);
   } catch (err) {
     res.status(500).send();

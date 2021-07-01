@@ -7,7 +7,7 @@ const auth = async (req, res, next) => {
   try {
     const token = req.header("Authorization").replace("Bearer ", "");
     // jwt.verify returns the decoded token with an obj which contains the _id, which we provided while creating the token
-    const decodedToken = jwt.verify(token, "taskToken5379")._id;
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY)._id;
     // the 'tokens.token' is a special mongodb syntax for querying arrya of objects.
     // it checks if the the user has an object with token property equal to our token, in the tokens array (tokens array is a property of user)
     const user = await User.findOne({

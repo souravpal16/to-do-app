@@ -1,3 +1,4 @@
 node_modules/
 jwt_token.txt
-_MACOSX/
+__MACOSX/
+config/
