@@ -70,7 +70,7 @@ taskRouter.get("/tasks/:id", auth, async (req, res) => {
   try {
     const task = await Task.findOne({ _id: _id, owner: req.user._id });
     if (!task) {
-      return res.status(400).send();
+      return res.status(404).send();
     }
     res.send(task);
   } catch (err) {
@@ -100,10 +100,10 @@ taskRouter.patch("/tasks/:id", auth, async (req, res) => {
     // complex methods like findOneAndUpdate will override middlewares, so we need to do it manually.
     const task = await Task.findOne({ _id, owner: req.user._id });
     if (!task) {
-      return res.status(400).send(`Error: task not found`);
+      return res.status(404).send(`Error: task not found`);
     }
     requestedProps.forEach((prop) => (task[prop] = req.body[prop]));
-
+    await task.save();
     res.send(task);
   } catch (err) {
     res.status(500).send(err);
@@ -115,7 +115,7 @@ taskRouter.delete("/tasks/:id", auth, async (req, res) => {
   try {
     const task = await Task.findOne({ _id, owner: req.user._id });
 
-    if (!task) return res.status(400).send(`task not found`);
+    if (!task) return res.status(404).send(`task not found`);
 
     await task.remove();
     res.send(task);
