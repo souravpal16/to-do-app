@@ -21,7 +21,7 @@ const auth = async (req, res, next) => {
     req.token = token;
     next();
   } catch (err) {
-    res.status(400).send("Error: Please provide authentication token");
+    res.status(401).send("Error: Please provide authentication token");
   }
 };
 
