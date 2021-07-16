@@ -3,7 +3,6 @@ const { isEmail } = require("validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Task = require("./Task");
-const { Binary } = require("mongodb");
 
 // to use a middleware before user.save(). we will have to define the schema seperately before calling mongoose.model;
 // second arg is optional, we used it to set timestamps to user object when it gets created and updated
