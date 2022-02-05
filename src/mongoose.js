@@ -5,7 +5,6 @@ const connectionUrl = process.env.MONGO_URL;
 mongoose
   .connect(connectionUrl, {
     useNewUrlParser: true,
-    useCreateIndex: true,
     useUnifiedTopology: true,
   })
   .then(() => console.log("database connected"))
